@@ -20,7 +20,7 @@ import kotlin.concurrent.thread
 
 fun main(args: Array<String>) {
     Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver", user = "root", password = "Gaga")
-    /** TODO("Remake temporary connection and chage URL") */
+    /** TODO("Remake temporary connection and change URL") */
 
     thread {
         // TODO: periodically check users and remove unreachable ones

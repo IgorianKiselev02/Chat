@@ -19,7 +19,7 @@ dependencies {
     implementation("io.ktor:ktor-client-websockets:$ktor_version")
     implementation("io.ktor:ktor-client-logging:$ktor_version")
 
-    implementation("org.jetbrains.exposed:exposed-core:0.29.1")
+    //implementation("org.jetbrains.exposed:exposed-core:0.29.1")
 
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
 }
