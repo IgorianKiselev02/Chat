@@ -31,7 +31,7 @@ class Chat(
             return
         }
         val aliveUserNames = registeredUsers.keys
-        if (selectedUser != null && selectedUser !in aliveUserNames) {
+        if (selectedUser != null && selectedUser!! !in aliveUserNames) {
             println("Selected user was removed from registry")
             selectedUser = null
         }

@@ -25,6 +25,8 @@ dependencies {
     
     implementation("com.squareup.retrofit2:retrofit:$retrofit_version")
     implementation("com.squareup.retrofit2:converter-jackson:$retrofit_version")
+
+    implementation("org.jetbrains.exposed:exposed-core:0.29.1")
     
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
 }

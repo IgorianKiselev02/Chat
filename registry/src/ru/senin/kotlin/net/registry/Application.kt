@@ -9,6 +9,8 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.netty.*
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.event.Level
 import ru.senin.kotlin.net.UserAddress
 import ru.senin.kotlin.net.UserInfo
@@ -17,6 +19,9 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
 
 fun main(args: Array<String>) {
+    Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver", user = "root", password = "Gaga")
+    /** TODO("Remake temporary connection and chage URL") */
+
     thread {
         // TODO: periodically check users and remove unreachable ones
     }
@@ -64,6 +69,17 @@ fun Application.module(testing: Boolean = false) {
                 throw UserAlreadyRegisteredException()
             }
             Registry.users[user.name] = user.address
+            transaction {
+                addLogger(StdOutSqlLogger)
+                SchemaUtils.create(userBase)
+                userBase.insert {
+                    it[name] = user.name
+                    it[protocol] = user.address.protocol.scheme
+                    it[host] = user.address.host
+                    it[port] = user.address.port
+                }
+                SchemaUtils.drop(userBase)
+            }
             call.respond(mapOf("status" to "ok"))
         }
 
@@ -75,12 +91,28 @@ fun Application.module(testing: Boolean = false) {
             val userName = call.parameters["name"] ?: throw IllegalArgumentException("User name not provided")
             checkUserName(userName) ?: throw IllegalUserNameException()
             Registry.users[userName] = call.receive()
+            transaction {
+                addLogger(StdOutSqlLogger)
+                SchemaUtils.create(userBase)
+                userBase.update( { userBase.name eq userName } ) {
+                    it[protocol] = Registry.users[userName]!!.protocol.scheme
+                    it[host] = Registry.users[userName]!!.host
+                    it[port] = Registry.users[userName]!!.port
+                    SchemaUtils.drop(userBase)
+                }
+            }
             call.respond(mapOf("status" to "ok"))
         }
 
         delete("/v1/users/{name}") {
             val userName = call.parameters["name"] ?: throw IllegalArgumentException("User name not provided")
             Registry.users.remove(userName)
+            transaction {
+                addLogger(StdOutSqlLogger)
+                SchemaUtils.create(userBase)
+                userBase.deleteWhere { userBase.name eq userName }
+                SchemaUtils.drop(userBase)
+            }
             call.respond(mapOf("status" to "ok"))
         }
     }
