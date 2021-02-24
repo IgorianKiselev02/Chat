@@ -8,6 +8,8 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.StdOutSqlLogger
+import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -85,6 +87,10 @@ class ApplicationTest {
     }
 
     private fun withRegisteredTestUser(block: TestApplicationEngine.() -> Unit) {
+        val connection = Database.connect("jdbc:h2:file:C:\\Users\\MSI GL75\\IdeaProjects\\talk-chat-database-scream-team\\test", driver = "org.h2.Driver")
+        transaction(connection) {
+            SchemaUtils.drop(userBase)
+        }
         withTestApplication({ testModule() }) {
             handleRequest {
                 method = HttpMethod.Post
