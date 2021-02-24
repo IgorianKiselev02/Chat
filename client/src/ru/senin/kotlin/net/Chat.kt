@@ -1,7 +1,10 @@
 package ru.senin.kotlin.net
 
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
 import ru.senin.kotlin.net.server.ChatClient
 import ru.senin.kotlin.net.server.ChatMessageListener
+
 
 class Chat(
     private val name: String,
@@ -61,6 +64,11 @@ class Chat(
     }
 
     private fun message(text: String) {
+        val connection = Database.connect("jdbc:h2:file:C:\\Users\\MSI GL75\\IdeaProjects\\talk-chat-database-scream-team\\test", driver = "org.h2.Driver")
+        transaction(connection) {
+            addLogger(StdOutSqlLogger)
+            SchemaUtils.create(messages)
+        }
         val currentUser = selectedUser
         if (currentUser == null) {
             println("User not selected. Use :user command")
@@ -74,12 +82,22 @@ class Chat(
         val client = clients.getOrPut(currentUser) {
             ClientFactory.create(address.protocol, address.host, address.port)
         }
+        var flag = 0
         try {
             client.sendMessage(Message(name, text))
         }
         catch(e: Exception) {
             println("Error! ${e.message}")
+            flag = 1
         }
+
+        if (flag == 0)
+            transaction {
+                messages.insert {
+                    it[directionUser] = currentUser
+                    it[message] = text
+                }
+            }
     }
 
     fun commandLoop() {
