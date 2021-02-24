@@ -32,6 +32,7 @@ subprojects {
     }
 
     repositories {
+        mavenCentral()
         jcenter()
     }
 
@@ -40,6 +41,10 @@ subprojects {
         "testImplementation"(kotlin("test-junit5"))
         "testImplementation"("org.junit.jupiter:junit-jupiter-api:$junit_version")
         "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$junit_version")
+        "implementation"("org.jetbrains.exposed:exposed-core:0.29.1")
+        "implementation"("org.jetbrains.exposed:exposed-dao:0.29.1")
+        "implementation"("org.jetbrains.exposed:exposed-jdbc:0.29.1")
+        "implementation"("com.h2database:h2:1.4.199")
     }
 
     tasks.withType<Test>().all {

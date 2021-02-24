@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
 
 fun main(args: Array<String>) {
-    Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver", user = "root", password = "Gaga")
     /** TODO("Remake temporary connection and change URL") */
 
     thread {
@@ -56,6 +55,11 @@ fun Application.module(testing: Boolean = false) {
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "illegal user name")
         }
     }
+    val connection = Database.connect("jdbc:h2:file:C:\\Users\\MSI GL75\\IdeaProjects\\talk-chat-database-scream-team\\test", driver = "org.h2.Driver")
+    transaction(connection) {
+        addLogger(StdOutSqlLogger)
+        SchemaUtils.create(userBase)
+    }
     routing {
         get("/v1/health") {
             call.respondText("OK", contentType = ContentType.Text.Plain)
@@ -64,21 +68,22 @@ fun Application.module(testing: Boolean = false) {
         post("/v1/users") {
             val user = call.receive<UserInfo>()
             val userAddresses = Registry.users[user.name]
+            if (Registry.users.contains(user.name)) {
+                throw UserAlreadyRegisteredException()
+            }
             checkUserName(user.name) ?: throw IllegalUserNameException()
             if (userAddresses != null) {
                 throw UserAlreadyRegisteredException()
             }
             Registry.users[user.name] = user.address
-            transaction {
-                addLogger(StdOutSqlLogger)
-                SchemaUtils.create(userBase)
+            transaction(connection) {
+                //SchemaUtils.create(userBase)
                 userBase.insert {
                     it[name] = user.name
                     it[protocol] = user.address.protocol.scheme
                     it[host] = user.address.host
                     it[port] = user.address.port
                 }
-                SchemaUtils.drop(userBase)
             }
             call.respond(mapOf("status" to "ok"))
         }
@@ -91,14 +96,12 @@ fun Application.module(testing: Boolean = false) {
             val userName = call.parameters["name"] ?: throw IllegalArgumentException("User name not provided")
             checkUserName(userName) ?: throw IllegalUserNameException()
             Registry.users[userName] = call.receive()
-            transaction {
-                addLogger(StdOutSqlLogger)
-                SchemaUtils.create(userBase)
+            transaction(connection) {
+                //SchemaUtils.create(userBase)
                 userBase.update( { userBase.name eq userName } ) {
                     it[protocol] = Registry.users[userName]!!.protocol.scheme
                     it[host] = Registry.users[userName]!!.host
                     it[port] = Registry.users[userName]!!.port
-                    SchemaUtils.drop(userBase)
                 }
             }
             call.respond(mapOf("status" to "ok"))
@@ -107,11 +110,9 @@ fun Application.module(testing: Boolean = false) {
         delete("/v1/users/{name}") {
             val userName = call.parameters["name"] ?: throw IllegalArgumentException("User name not provided")
             Registry.users.remove(userName)
-            transaction {
-                addLogger(StdOutSqlLogger)
-                SchemaUtils.create(userBase)
+            transaction(connection) {
+                //SchemaUtils.create(userBase)
                 userBase.deleteWhere { userBase.name eq userName }
-                SchemaUtils.drop(userBase)
             }
             call.respond(mapOf("status" to "ok"))
         }

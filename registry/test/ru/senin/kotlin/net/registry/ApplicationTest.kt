@@ -6,6 +6,9 @@ import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import ru.senin.kotlin.net.Protocol
