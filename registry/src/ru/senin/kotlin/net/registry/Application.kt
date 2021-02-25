@@ -9,9 +9,12 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.netty.*
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.event.Level
+import ru.senin.kotlin.net.Protocol
 import ru.senin.kotlin.net.UserAddress
 import ru.senin.kotlin.net.UserInfo
 import ru.senin.kotlin.net.checkUserName
@@ -55,11 +58,19 @@ fun Application.module(testing: Boolean = false) {
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "illegal user name")
         }
     }
+
     val connection = Database.connect("jdbc:h2:file:C:\\Users\\MSI GL75\\IdeaProjects\\talk-chat-database-scream-team\\test", driver = "org.h2.Driver")
     transaction(connection) {
         addLogger(StdOutSqlLogger)
         SchemaUtils.create(userBase)
+        val users = userBase.selectAll()
+        users.forEach { Registry.users[it[userBase.name]] = UserAddress(when(it[userBase.protocol]) {
+            "http" -> Protocol.HTTP
+            "udp" -> Protocol.UDP
+            else -> Protocol.WEBSOCKET
+        }, it[userBase.host], it[userBase.port]) }
     }
+
     routing {
         get("/v1/health") {
             call.respondText("OK", contentType = ContentType.Text.Plain)
