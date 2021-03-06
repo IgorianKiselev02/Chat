@@ -9,8 +9,6 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.netty.*
-import org.jetbrains.exposed.dao.IntEntity
-import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.event.Level
@@ -22,16 +20,88 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
 
 fun main(args: Array<String>) {
-    /** TODO("Remake temporary connection and change URL") */
-
     thread {
         // TODO: periodically check users and remove unreachable ones
     }
     EngineMain.main(args)
 }
 
+interface UserStorage {
+    fun containsUser(name: String) : Boolean
+    fun setOrUpdateUser(name: String, address: UserAddress)
+    fun removeUser(name: String)
+    fun clearUsers()
+    operator fun set(userName: String, value: Any) {
+
+    }
+}
+
+class MemoryUsersStorage : UserStorage {
+    val storage = ConcurrentHashMap<String, UserAddress>()
+
+    override fun containsUser(name: String): Boolean {
+        return storage.contains(name)
+    }
+
+    override fun setOrUpdateUser(name: String, address: UserAddress) {
+        storage[name] = address
+    }
+
+    override fun removeUser(name: String) {
+        storage.remove(name)
+    }
+
+    override fun clearUsers() {
+        storage.clear()
+    }
+}
+
+class DBUsersStorage : UserStorage {
+    override fun containsUser(userName: String): Boolean {
+        var flag = false
+        transaction {
+            for (users in userBase.selectAll())
+                if (users[userBase.name] == userName)
+                    flag = true
+        }
+        return flag
+    }
+
+    override fun setOrUpdateUser(userName: String, address: UserAddress) {
+        if (containsUser(userName))
+            transaction {
+                userBase.update({ userBase.name eq userName }) {
+                    it[protocol] = address.protocol.scheme
+                    it[host] = address.host
+                    it[port] = address.port
+                }
+            }
+        else
+            transaction {
+                userBase.insert {
+                    it[name] = userName
+                    it[protocol] = address.protocol.scheme
+                    it[host] = address.host
+                    it[port] = address.port
+                }
+            }
+    }
+
+    override fun removeUser(userName: String) {
+        transaction {
+            userBase.deleteWhere { userBase.name eq userName }
+        }
+    }
+
+    override fun clearUsers() {
+        transaction {
+            SchemaUtils.drop(userBase)
+        }
+    }
+}
+
 object Registry {
-    val users = ConcurrentHashMap<String, UserAddress>()
+    val users : UserStorage = MemoryUsersStorage()
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -63,12 +133,6 @@ fun Application.module(testing: Boolean = false) {
     transaction(connection) {
         addLogger(StdOutSqlLogger)
         SchemaUtils.create(userBase)
-        val users = userBase.selectAll()
-        users.forEach { Registry.users[it[userBase.name]] = UserAddress(when(it[userBase.protocol]) {
-            "http" -> Protocol.HTTP
-            "udp" -> Protocol.UDP
-            else -> Protocol.WEBSOCKET
-        }, it[userBase.host], it[userBase.port]) }
     }
 
     routing {
@@ -78,24 +142,15 @@ fun Application.module(testing: Boolean = false) {
 
         post("/v1/users") {
             val user = call.receive<UserInfo>()
-            val userAddresses = Registry.users[user.name]
-            if (Registry.users.contains(user.name)) {
+            //val userAddresses = Registry.users[user.name]
+            if (Registry.users.containsUser(user.name)) {
                 throw UserAlreadyRegisteredException()
             }
             checkUserName(user.name) ?: throw IllegalUserNameException()
-            if (userAddresses != null) {
+            /*if (userAddresses != null) {
                 throw UserAlreadyRegisteredException()
-            }
-            Registry.users[user.name] = user.address
-            transaction(connection) {
-                //SchemaUtils.create(userBase)
-                userBase.insert {
-                    it[name] = user.name
-                    it[protocol] = user.address.protocol.scheme
-                    it[host] = user.address.host
-                    it[port] = user.address.port
-                }
-            }
+            }*/
+            Registry.users.setOrUpdateUser(user.name, user.address)
             call.respond(mapOf("status" to "ok"))
         }
 
@@ -107,24 +162,12 @@ fun Application.module(testing: Boolean = false) {
             val userName = call.parameters["name"] ?: throw IllegalArgumentException("User name not provided")
             checkUserName(userName) ?: throw IllegalUserNameException()
             Registry.users[userName] = call.receive()
-            transaction(connection) {
-                //SchemaUtils.create(userBase)
-                userBase.update( { userBase.name eq userName } ) {
-                    it[protocol] = Registry.users[userName]!!.protocol.scheme
-                    it[host] = Registry.users[userName]!!.host
-                    it[port] = Registry.users[userName]!!.port
-                }
-            }
             call.respond(mapOf("status" to "ok"))
         }
 
         delete("/v1/users/{name}") {
             val userName = call.parameters["name"] ?: throw IllegalArgumentException("User name not provided")
-            Registry.users.remove(userName)
-            transaction(connection) {
-                //SchemaUtils.create(userBase)
-                userBase.deleteWhere { userBase.name eq userName }
-            }
+            Registry.users.removeUser(userName)
             call.respond(mapOf("status" to "ok"))
         }
     }
