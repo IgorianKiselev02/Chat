@@ -27,9 +27,9 @@ fun main(args: Array<String>) {
 }
 
 interface UserStorage {
-    fun containsUser(name: String) : Boolean
-    fun setOrUpdateUser(name: String, address: UserAddress)
-    fun removeUser(name: String)
+    fun containsUser(userName: String) : Boolean
+    fun setOrUpdateUser(userName: String, address: UserAddress)
+    fun removeUser(userName: String)
     fun clearUsers()
     fun get() : ConcurrentHashMap<String, UserAddress>
     operator fun set(userName: String, value: Any) {
@@ -40,16 +40,16 @@ interface UserStorage {
 class MemoryUsersStorage : UserStorage {
     val storage = ConcurrentHashMap<String, UserAddress>()
 
-    override fun containsUser(name: String): Boolean {
-        return storage.contains(name)
+    override fun containsUser(userName: String): Boolean {
+        return storage.contains(userName)
     }
 
-    override fun setOrUpdateUser(name: String, address: UserAddress) {
-        storage[name] = address
+    override fun setOrUpdateUser(userName: String, address: UserAddress) {
+        storage[userName] = address
     }
 
-    override fun removeUser(name: String) {
-        storage.remove(name)
+    override fun removeUser(userName: String) {
+        storage.remove(userName)
     }
 
     override fun clearUsers() {
@@ -62,8 +62,6 @@ class MemoryUsersStorage : UserStorage {
 }
 
 class DBUsersStorage : UserStorage {
-    var isConnected = false
-
     override fun containsUser(userName: String): Boolean {
         var flag = false
         transaction(Registry.connection) {
@@ -123,7 +121,7 @@ class DBUsersStorage : UserStorage {
 }
 
 object Registry {
-    val users : UserStorage = DBUsersStorage()
+    var users : UserStorage = DBUsersStorage()
     val connection = Database.connect("jdbc:h2:file:C:\\Users\\MSI GL75\\IdeaProjects\\talk-chat-database-scream-team\\test", driver = "org.h2.Driver")
 
 }
