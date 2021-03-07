@@ -88,9 +88,6 @@ class ApplicationTest {
 
     private fun withRegisteredTestUser(block: TestApplicationEngine.() -> Unit) {
         val connection = Database.connect("jdbc:h2:file:C:\\Users\\MSI GL75\\IdeaProjects\\talk-chat-database-scream-team\\test", driver = "org.h2.Driver")
-        transaction(connection) {
-            SchemaUtils.drop(userBase)
-        }
         withTestApplication({ testModule() }) {
             handleRequest {
                 method = HttpMethod.Post

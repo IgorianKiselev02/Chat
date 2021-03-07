@@ -31,6 +31,7 @@ interface UserStorage {
     fun setOrUpdateUser(name: String, address: UserAddress)
     fun removeUser(name: String)
     fun clearUsers()
+    fun get() : ConcurrentHashMap<String, UserAddress>
     operator fun set(userName: String, value: Any) {
 
     }
@@ -54,25 +55,18 @@ class MemoryUsersStorage : UserStorage {
     override fun clearUsers() {
         storage.clear()
     }
+
+    override fun get(): ConcurrentHashMap<String, UserAddress> {
+        return storage
+    }
 }
 
 class DBUsersStorage : UserStorage {
-    val connection = Database.connect("jdbc:h2:file:C:\\Users\\MSI GL75\\IdeaProjects\\talk-chat-database-scream-team\\test", driver = "org.h2.Driver")
     var isConnected = false
-
-    fun createDB() {
-        if (!isConnected)
-            transaction(connection) {
-                addLogger(StdOutSqlLogger)
-                SchemaUtils.create(userBase)
-                isConnected = true
-            }
-    }
 
     override fun containsUser(userName: String): Boolean {
         var flag = false
-        createDB()
-        transaction(connection) {
+        transaction(Registry.connection) {
             for (users in userBase.selectAll())
                 if (users[userBase.name].contains(userName))
                     flag = true
@@ -81,9 +75,8 @@ class DBUsersStorage : UserStorage {
     }
 
     override fun setOrUpdateUser(userName: String, address: UserAddress) {
-        createDB()
         if (containsUser(userName))
-            transaction(connection) {
+            transaction(Registry.connection) {
                 userBase.update({ userBase.name eq userName }) {
                     it[protocol] = address.protocol.scheme
                     it[host] = address.host
@@ -91,7 +84,7 @@ class DBUsersStorage : UserStorage {
                 }
             }
         else
-            transaction(connection) {
+            transaction(Registry.connection) {
                 userBase.insert {
                     it[name] = userName
                     it[protocol] = address.protocol.scheme
@@ -102,21 +95,37 @@ class DBUsersStorage : UserStorage {
     }
 
     override fun removeUser(userName: String) {
-        createDB()
-        transaction(connection) {
+        transaction(Registry.connection) {
             userBase.deleteWhere { userBase.name eq userName }
         }
     }
 
     override fun clearUsers() {
-        transaction {
+        transaction(Registry.connection) {
             SchemaUtils.drop(userBase)
         }
+    }
+
+    override fun get(): ConcurrentHashMap<String, UserAddress> {
+        val storage = ConcurrentHashMap<String, UserAddress>()
+        transaction(Registry.connection) {
+            val users = userBase.selectAll()
+            users.forEach {
+                storage[it[userBase.name]] = UserAddress(when (it[userBase.protocol]) {
+                    "http" -> Protocol.HTTP
+                    "udp" -> Protocol.UDP
+                    else -> Protocol.WEBSOCKET
+                }, it[userBase.host], it[userBase.port])
+            }
+        }
+        return storage
     }
 }
 
 object Registry {
     val users : UserStorage = DBUsersStorage()
+    val connection = Database.connect("jdbc:h2:file:C:\\Users\\MSI GL75\\IdeaProjects\\talk-chat-database-scream-team\\test", driver = "org.h2.Driver")
+
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -132,6 +141,7 @@ fun Application.module(testing: Boolean = false) {
             enable(SerializationFeature.INDENT_OUTPUT)
         }
     }
+
     install(StatusPages) {
         exception<IllegalArgumentException> { cause ->
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "invalid argument")
@@ -142,6 +152,11 @@ fun Application.module(testing: Boolean = false) {
         exception<IllegalUserNameException> { cause ->
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "illegal user name")
         }
+    }
+
+    transaction(Registry.connection) {
+        addLogger(StdOutSqlLogger)
+        SchemaUtils.create(userBase)
     }
 
     routing {
@@ -164,7 +179,7 @@ fun Application.module(testing: Boolean = false) {
         }
 
         get("/v1/users") {
-            call.respond(Registry.users)
+            call.respond(Registry.users.get())
         }
 
         put("/v1/users/{name}") {
