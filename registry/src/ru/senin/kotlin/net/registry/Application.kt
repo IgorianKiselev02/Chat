@@ -57,19 +57,33 @@ class MemoryUsersStorage : UserStorage {
 }
 
 class DBUsersStorage : UserStorage {
+    val connection = Database.connect("jdbc:h2:file:C:\\Users\\MSI GL75\\IdeaProjects\\talk-chat-database-scream-team\\test", driver = "org.h2.Driver")
+    var isConnected = false
+
+    fun createDB() {
+        if (!isConnected)
+            transaction(connection) {
+                addLogger(StdOutSqlLogger)
+                SchemaUtils.create(userBase)
+                isConnected = true
+            }
+    }
+
     override fun containsUser(userName: String): Boolean {
         var flag = false
-        transaction {
+        createDB()
+        transaction(connection) {
             for (users in userBase.selectAll())
-                if (users[userBase.name] == userName)
+                if (users[userBase.name].contains(userName))
                     flag = true
         }
         return flag
     }
 
     override fun setOrUpdateUser(userName: String, address: UserAddress) {
+        createDB()
         if (containsUser(userName))
-            transaction {
+            transaction(connection) {
                 userBase.update({ userBase.name eq userName }) {
                     it[protocol] = address.protocol.scheme
                     it[host] = address.host
@@ -77,7 +91,7 @@ class DBUsersStorage : UserStorage {
                 }
             }
         else
-            transaction {
+            transaction(connection) {
                 userBase.insert {
                     it[name] = userName
                     it[protocol] = address.protocol.scheme
@@ -88,7 +102,8 @@ class DBUsersStorage : UserStorage {
     }
 
     override fun removeUser(userName: String) {
-        transaction {
+        createDB()
+        transaction(connection) {
             userBase.deleteWhere { userBase.name eq userName }
         }
     }
@@ -101,7 +116,7 @@ class DBUsersStorage : UserStorage {
 }
 
 object Registry {
-    val users : UserStorage = MemoryUsersStorage()
+    val users : UserStorage = DBUsersStorage()
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -127,12 +142,6 @@ fun Application.module(testing: Boolean = false) {
         exception<IllegalUserNameException> { cause ->
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "illegal user name")
         }
-    }
-
-    val connection = Database.connect("jdbc:h2:file:C:\\Users\\MSI GL75\\IdeaProjects\\talk-chat-database-scream-team\\test", driver = "org.h2.Driver")
-    transaction(connection) {
-        addLogger(StdOutSqlLogger)
-        SchemaUtils.create(userBase)
     }
 
     routing {
