@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import ru.senin.kotlin.net.Protocol
@@ -36,9 +37,13 @@ class MemoryApplicationTest {
     private val testHttpAddress = UserAddress(Protocol.HTTP, "127.0.0.1", 9999)
     private val userData = UserInfo(testUserName, testHttpAddress)
 
+    init {
+        Registry.connection = Database.connect("jdbc:h2:file:C:\\\\Users\\\\MSI GL75\\\\IdeaProjects\\\\talk-chat-database-scream-team\\\\testdb\\\\test", driver = "org.h2.Driver")
+        Registry.users = MemoryUsersStorage()
+    }
+
     @BeforeEach
     fun clearRegistry() {
-        Registry.users = MemoryUsersStorage()
         Registry.users.clearUsers()
     }
 
@@ -116,9 +121,13 @@ class DBApplicationTest {
     private val testHttpAddress = UserAddress(Protocol.HTTP, "127.0.0.1", 9999)
     private val userData = UserInfo(testUserName, testHttpAddress)
 
+    init {
+        Registry.connection = Database.connect("jdbc:h2:file:C:\\\\Users\\\\MSI GL75\\\\IdeaProjects\\\\talk-chat-database-scream-team\\\\testdb\\\\test", driver = "org.h2.Driver")
+        Registry.users = DBUsersStorage()
+    }
+
     @BeforeEach
     fun clearRegistry() {
-        Registry.users = DBUsersStorage()
         Registry.users.clearUsers()
     }
 

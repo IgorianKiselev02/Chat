@@ -18,6 +18,7 @@ import ru.senin.kotlin.net.UserInfo
 import ru.senin.kotlin.net.checkUserName
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
+import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
     thread {
@@ -121,14 +122,22 @@ class DBUsersStorage : UserStorage {
 }
 
 object Registry {
-    var users : UserStorage = DBUsersStorage()
-    val connection = Database.connect("jdbc:h2:file:C:\\Users\\MSI GL75\\IdeaProjects\\talk-chat-database-scream-team\\test", driver = "org.h2.Driver")
-
+    lateinit var users : UserStorage
+    lateinit var connection: Database
 }
 
 @Suppress("UNUSED_PARAMETER")
 @JvmOverloads
 fun Application.module(testing: Boolean = false) {
+    val type = environment.config.propertyOrNull("ktor.config.Type")?.getString() ?: ""
+
+    Registry.users = if (type == "db") {
+        Registry.connection = Database.connect(environment.config.propertyOrNull("ktor.config.dbUrl")?.getString() ?: "", driver = "org.h2.Driver")
+        DBUsersStorage()
+    }
+    else
+         MemoryUsersStorage()
+
     install(CallLogging) {
         level = Level.INFO
         filter { call -> call.request.path().startsWith("/") }
