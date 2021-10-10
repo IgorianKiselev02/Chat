@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ru.senin.kotlin.net.registry.MemoryApplicationTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2021-05-26T15:33:17" hostname="MSI" time="2.133">
+  <properties/>
+  <testcase name="register user()" classname="ru.senin.kotlin.net.registry.MemoryApplicationTest" time="1.436"/>
+  <testcase name="delete user()" classname="ru.senin.kotlin.net.registry.MemoryApplicationTest" time="0.236"/>
+  <testcase name="list users()" classname="ru.senin.kotlin.net.registry.MemoryApplicationTest" time="0.236"/>
+  <testcase name="health endpoint()" classname="ru.senin.kotlin.net.registry.MemoryApplicationTest" time="0.222"/>
+  <system-out><![CDATA[2021-05-26 18:33:17.743 [Test worker] INFO  ktor.test - No ktor.deployment.watch patterns specified, automatic reload is not active
+2021-05-26 18:33:18.922 [DefaultDispatcher-worker-2 @request#1] INFO  ktor.test - 200 OK: POST - /v1/users
+2021-05-26 18:33:18.944 [Test worker] INFO  ktor.test - Application stopping: io.ktor.application.Application@1c37380e
+2021-05-26 18:33:18.945 [Test worker] INFO  ktor.test - Application stopped: io.ktor.application.Application@1c37380e
+2021-05-26 18:33:18.950 [Test worker] INFO  ktor.test - No ktor.deployment.watch patterns specified, automatic reload is not active
+2021-05-26 18:33:19.176 [DefaultDispatcher-worker-3 @request#5] INFO  ktor.test - 200 OK: POST - /v1/users
+2021-05-26 18:33:19.180 [DefaultDispatcher-worker-3 @request#9] INFO  ktor.test - 200 OK: DELETE - /v1/users/pupkin
+2021-05-26 18:33:19.182 [DefaultDispatcher-worker-3 @request#13] INFO  ktor.test - 200 OK: GET - /v1/users
+2021-05-26 18:33:19.185 [Test worker] INFO  ktor.test - Application stopping: io.ktor.application.Application@1ed0beb8
+2021-05-26 18:33:19.185 [Test worker] INFO  ktor.test - Application stopped: io.ktor.application.Application@1ed0beb8
+2021-05-26 18:33:19.187 [Test worker] INFO  ktor.test - No ktor.deployment.watch patterns specified, automatic reload is not active
+2021-05-26 18:33:19.414 [DefaultDispatcher-worker-3 @request#17] INFO  ktor.test - 200 OK: POST - /v1/users
+2021-05-26 18:33:19.418 [DefaultDispatcher-worker-3 @request#21] INFO  ktor.test - 200 OK: GET - /v1/users
+2021-05-26 18:33:19.422 [Test worker] INFO  ktor.test - Application stopping: io.ktor.application.Application@695421c
+2021-05-26 18:33:19.422 [Test worker] INFO  ktor.test - Application stopped: io.ktor.application.Application@695421c
+2021-05-26 18:33:19.425 [Test worker] INFO  ktor.test - No ktor.deployment.watch patterns specified, automatic reload is not active
+2021-05-26 18:33:19.645 [DefaultDispatcher-worker-1 @request#25] INFO  ktor.test - 200 OK: GET - /v1/health
+2021-05-26 18:33:19.645 [Test worker] INFO  ktor.test - Application stopping: io.ktor.application.Application@387d612
+2021-05-26 18:33:19.645 [Test worker] INFO  ktor.test - Application stopped: io.ktor.application.Application@387d612
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="test" uuid="178a83c4-77ce-4cde-b561-8e91573cbc00">
+      <driver-ref>h2.unified</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.h2.Driver</jdbc-driver>
+      <jdbc-url>jdbc:h2:file:C:\Users\MSI GL75\IdeaProjects\talk-chat-database-scream-team\test</jdbc-url>
+    </data-source>
+  </component>
+</project>

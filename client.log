@@ -1,0 +1,8 @@
+22:15:03.479 [main] [] ERROR main - Error! No value passed for property name (--NAME) 
+com.apurebase.arkenv.MissingArgumentException: No value passed for property name (--NAME)
+	at com.apurebase.arkenv.ArgumentDelegate.checkNullable(ArgumentDelegate.kt:93)
+	at com.apurebase.arkenv.ArgumentDelegate.getValue(ArgumentDelegate.kt:46)
+	at com.apurebase.arkenv.Arkenv.parse(Arkenv.kt:110)
+	at com.apurebase.arkenv.Arkenv.parseArguments$arkenv(Arkenv.kt:32)
+	at com.apurebase.arkenv.ArkenvUtilKt.parse(ArkenvUtil.kt:18)
+	at ru.senin.kotlin.net.MainKt.main(Main.kt:76)

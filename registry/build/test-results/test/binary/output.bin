@@ -1,0 +1,19 @@
+…2021-05-26 18:33:17.743 [Test worker] INFO  ktor.test - No ktor.deployment.watch patterns specified, automatic reload is not active
+l2021-05-26 18:33:18.922 [DefaultDispatcher-worker-2 @request#1] INFO  ktor.test - 200 OK: POST - /v1/users
+x2021-05-26 18:33:18.944 [Test worker] INFO  ktor.test - Application stopping: io.ktor.application.Application@1c37380e
+w2021-05-26 18:33:18.945 [Test worker] INFO  ktor.test - Application stopped: io.ktor.application.Application@1c37380e
+…2021-05-26 18:33:18.950 [Test worker] INFO  ktor.test - No ktor.deployment.watch patterns specified, automatic reload is not active
+l2021-05-26 18:33:19.176 [DefaultDispatcher-worker-3 @request#5] INFO  ktor.test - 200 OK: POST - /v1/users
+u2021-05-26 18:33:19.180 [DefaultDispatcher-worker-3 @request#9] INFO  ktor.test - 200 OK: DELETE - /v1/users/pupkin
+l2021-05-26 18:33:19.182 [DefaultDispatcher-worker-3 @request#13] INFO  ktor.test - 200 OK: GET - /v1/users
+x2021-05-26 18:33:19.185 [Test worker] INFO  ktor.test - Application stopping: io.ktor.application.Application@1ed0beb8
+w2021-05-26 18:33:19.185 [Test worker] INFO  ktor.test - Application stopped: io.ktor.application.Application@1ed0beb8
+…2021-05-26 18:33:19.187 [Test worker] INFO  ktor.test - No ktor.deployment.watch patterns specified, automatic reload is not active
+m2021-05-26 18:33:19.414 [DefaultDispatcher-worker-3 @request#17] INFO  ktor.test - 200 OK: POST - /v1/users
+l2021-05-26 18:33:19.418 [DefaultDispatcher-worker-3 @request#21] INFO  ktor.test - 200 OK: GET - /v1/users
+w2021-05-26 18:33:19.422 [Test worker] INFO  ktor.test - Application stopping: io.ktor.application.Application@695421c
+v2021-05-26 18:33:19.422 [Test worker] INFO  ktor.test - Application stopped: io.ktor.application.Application@695421c
+…2021-05-26 18:33:19.425 [Test worker] INFO  ktor.test - No ktor.deployment.watch patterns specified, automatic reload is not active
+m2021-05-26 18:33:19.645 [DefaultDispatcher-worker-1 @request#25] INFO  ktor.test - 200 OK: GET - /v1/health
+w2021-05-26 18:33:19.645 [Test worker] INFO  ktor.test - Application stopping: io.ktor.application.Application@387d612
+v2021-05-26 18:33:19.645 [Test worker] INFO  ktor.test - Application stopped: io.ktor.application.Application@387d612
